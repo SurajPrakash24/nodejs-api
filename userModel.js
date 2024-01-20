@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
         default: UserStatus.PENDING,
     },
     createdAt: { type: Date, default: Date.now },
+    lastLogin: { type: Date },
 });
 
 const User = mongoose.model('User', userSchema);

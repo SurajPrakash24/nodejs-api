@@ -38,11 +38,14 @@ app.post('/login', async (req, res) => {
   
     try {
         const user = await User.findOne({ username, password });
-  
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-  
+        
+        // Update lastLogin timestamp
+        user.lastLogin = new Date();
+        await user.save();
+        
         const token = jwtAuth.generateToken({ username });
 
         res.status(200).json({
@@ -58,12 +61,16 @@ app.post('/login', async (req, res) => {
 
 // Users endpoint
 app.get('/users', jwtAuth.authenticateToken, async (req, res) => {
-    const { createdAt, status } = req.query;
+    const { createdAt, lastLogin, status } = req.query;
     try {
         let query = {};
         if (createdAt) {
             // Filter documents where the 'createdAt' field is greater than or equal to the specified date.
             query.createdAt = { $gte: new Date(createdAt) };
+        }
+        if (lastLogin) {
+            // Filter users with last login greater than or equal to the specified date
+            query.lastLogin = { $gte: new Date(lastLogin) };
         }
         if (status) {
             // Filter for the 'status' field based on the provided value
