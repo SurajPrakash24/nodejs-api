@@ -24,7 +24,7 @@ app.post('/signup', async (req, res) => {
 
         const newUser = new User({ username, password, status });
         await newUser.save();
-        res.json({ message: 'User created successfully' });
+        res.status(201).json({ message: 'User created successfully' });
     } 
     catch (error) {
         console.error(error);
@@ -49,6 +49,28 @@ app.post('/login', async (req, res) => {
             message:"LoggedIn Success",
             "token":token
         });
+    } 
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Users endpoint
+app.get('/users', jwtAuth.authenticateToken, async (req, res) => {
+    const { createdAt, status } = req.query;
+    try {
+        let query = {};
+        if (createdAt) {
+            // Filter documents where the 'createdAt' field is greater than or equal to the specified date.
+            query.createdAt = { $gte: new Date(createdAt) };
+        }
+        if (status) {
+            // Filter for the 'status' field based on the provided value
+            query.status = status;
+        }
+        const users = await User.find(query);
+        res.status(200).json(users);
     } 
     catch (error) {
         console.error(error);
